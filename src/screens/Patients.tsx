@@ -1,13 +1,15 @@
-import { View, Text, FlatList, Image } from 'react-native'
+import { View, Text, FlatList, Image,ActivityIndicator } from 'react-native'
 import React,{useState,useEffect}from 'react'
 import Card from '../components/shared/Card';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+import { COLORS, FONT } from '../themes/themes'
 
 export default function Patients() {
 
     const [pid,setPid]=useState("")
     const [patients,setPatients]= useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
    useEffect(()=>{
 
 
@@ -29,8 +31,12 @@ export default function Patients() {
     axios.get(`http://192.168.29.10:4500/getPatientDocById?provider_id=${pid}`).then((res)=>{
         console.log(res.data,"Patient data")
         setPatients(res.data)
+        setIsLoading(false)
         console.log(patients,"Patients")
-    }).catch(err=>console.log(err))
+    }).catch(err=>{
+        console.log(err)
+        setIsLoading(false)
+    })
    },[pid])
 
     // const patients = [
@@ -98,11 +104,17 @@ export default function Patients() {
 
     return (
         <View>
-            <FlatList 
-                data={patients}
-                renderItem={({item}) => <Item  firstName={item.firstName} dob={item.dob} gender={item.gender} type={item.type}/>}
-                keyExtractor={item => item.mrn}
-            />
+            {isLoading ? (
+                <ActivityIndicator size="large" color={COLORS.primary} />
+            ) : (
+                <FlatList
+                    data={patients}
+                    renderItem={({ item }) => (
+                        <Item firstName={item.firstName} dob={item.dob} gender={item.gender} type={item.type} />
+                    )}
+                    keyExtractor={(item) => item.mrn}
+                />
+            )}
         </View>
     )
 }

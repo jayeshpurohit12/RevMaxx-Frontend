@@ -4,7 +4,9 @@ import { globalStyles } from '../globalStyles'
 import Card from '../components/shared/Card'
 import { COLORS, FONT } from '../themes/themes'
 import Button from '../components/shared/Button'
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRoute } from '@react-navigation/native';
+import axios from 'axios'
 type RouteParams = {
     soapresponse: string;
     patient_name:string // Define the type of soapresponse
@@ -15,15 +17,50 @@ export default function SoapNote() {
     const [varified, setVarified] = useState(false);
     const[soapresponse,setSoapResponse]=useState<string>('')
     const[patient_name,setPatient_name]=useState<string>('')
+    const [pid,setPid]=useState("")
     const route = useRoute();
     // soapresponse:string;
     useEffect(()=>{
+        AsyncStorage.getItem('provider_id')
+        .then((provider_id) => {
+          if (provider_id) {
+            setPid(provider_id)
+            // Use the retrieved username here
+            console.log('Retrieved pid in soapnote page:', pid);
+          } else {
+            // Handle the case where 'username' is not found in AsyncStorage
+            console.log('provider_id not found in AsyncStorage');
+          }
+        })
+        .catch((error) => {
+          // Handle any errors here
+          console.error('Error retrieving provider_id:', error);
+        });
+
+        
      const receivedsoapresponse = route.params as RouteParams;
      console.log(soapresponse,"soaptext-----")
        setSoapResponse(receivedsoapresponse.soapresponse);
        setPatient_name(receivedsoapresponse.patient_name)
+       if(soapresponse){
+        saveSoapNote()
+       }else{
+        return
+       }
+       
 
-    },[route.params])
+    },[route.params,pid])
+
+    const saveSoapNote=()=>{
+        const dataObj={
+            "provider_id":pid,
+            "soapnote":soapresponse
+
+        }
+        axios.post("http://192.168.29.10:4500/addSoapNote",dataObj).
+        then(res=>console.log(res.data,"soapnote added response")).
+        catch(err=>console.log(err))
+    }
 
     const prevRecordings = [
         {
@@ -120,8 +157,8 @@ export default function SoapNote() {
                         onPress={() => setVarified(true)}
                     />
                 )} */}
-                <Text>Patient Name : {patient_name}</Text>
-                <Text>{soapresponse}</Text>
+                <Text style={styles.headTextLarge}>Patient Name : {patient_name}</Text>
+                <Text style={styles.headSoapNotetext}>{soapresponse}</Text>
             </View>
         </ScrollView>
     )
@@ -137,5 +174,10 @@ const styles = StyleSheet.create({
         fontFamily: FONT.medium,
         fontSize: 18,
         color: COLORS.primary,
+    },
+    headSoapNotetext: {
+        fontFamily: FONT.medium,
+        fontSize: 18,
+        color: COLORS.black,
     }
 })

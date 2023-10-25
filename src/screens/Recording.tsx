@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableOpacity, Image, Button } from 'react-native'
+import { View, Text, StyleSheet, TouchableOpacity, Image, Button, Alert } from 'react-native'
 import React, { useState,useEffect } from 'react'
 import { globalStyles } from '../globalStyles'
 import { COLORS, FONT } from '../themes/themes'
@@ -35,10 +35,15 @@ export default function Recording({ navigation }: { navigation: any }) {
         console.log(receivedpatientname,"patient_name")
         setPatient_name(receivedpatientname.patient_name)
         console.log(patient_name,"patient_name")
-        if (soapresponse && patient_name) {
-            navigation.navigate('SoapNote', { soapresponse,patient_name })
-        }
+        // if (soapresponse && patient_name) {
+        //     navigation.navigate('SoapNote', { soapresponse,patient_name })
+        // }
+       
     }, [soapresponse,patient_name])
+
+    
+
+
 
    const startRecording=async ()=>{
         setStartRecord(true);
@@ -176,7 +181,7 @@ export default function Recording({ navigation }: { navigation: any }) {
                             gap: 4,
                         }}>
                             <Text style={[styles.textRecord, { fontSize: 24 }]}>00:01</Text>
-                            <Text style={styles.textRecord}>Recoding</Text>
+                            <Text style={styles.textRecord}>Recording</Text>
                         </View>
 
                         <Image
@@ -259,15 +264,18 @@ export default function Recording({ navigation }: { navigation: any }) {
                                 </View>
                             </TouchableOpacity>
 
-                            <TouchableOpacity onPress={() => navigation.navigate('SoapNote')} style={{
+                            {soapresponse && (
+                                <TouchableOpacity
+                                onPress={() => navigation.navigate('SoapNote', { soapresponse, patient_name })}
+                                style={{
                                 backgroundColor: COLORS.primary,
                                 padding: 12,
                                 borderRadius: 99
-                            }}>
-                                <Image
-                                    source={require('../assets/images/icons/scribe.png')}
-                                />
-                            </TouchableOpacity>
+                                }}
+                                >
+                                <Image source={require('../assets/images/icons/scribe.png')} />
+                                </TouchableOpacity>
+)}
                         </View>
                     )
                 )}
