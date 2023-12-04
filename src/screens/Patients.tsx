@@ -28,7 +28,7 @@ export default function Patients() {
       // Handle any errors here
       console.error('Error retrieving provider_id:', error);
     });
-    axios.get(`http://192.168.29.10:4500/getPatientDocById?provider_id=${pid}`).then((res)=>{
+    axios.get(`http://revmaxx.us-east-1.elasticbeanstalk.com/getPatientDocById?provider_id=${pid}`).then((res)=>{
         console.log(res.data,"Patient data")
         setPatients(res.data)
         setIsLoading(false)
@@ -39,40 +39,7 @@ export default function Patients() {
     })
    },[pid])
 
-    // const patients = [
-    //     {
-    //         id: '1',
-    //         img: require('../assets/images/imgs/avatar.jpg'),
-    //         name: 'John Doe',
-    //         age: '23',
-    //         sex: 'Male',
-    //         visits: '12'
-    //     },
-    //     {
-    //         id: '2',
-    //         img: require('../assets/images/imgs/avatar.jpg'),
-    //         name: 'John Doe',
-    //         age: '23',
-    //         sex: 'Male',
-    //         visits: '12'
-    //     },
-    //     {
-    //         id: '3',
-    //         img: require('../assets/images/imgs/avatar.jpg'),
-    //         name: 'John Doe',
-    //         age: '23',
-    //         sex: 'Male',
-    //         visits: '12'
-    //     },
-    //     {
-    //         id: '4',
-    //         img: require('../assets/images/imgs/avatar.jpg'),
-    //         name: 'John Doe',
-    //         age: '23',
-    //         sex: 'Male',
-    //         visits: '12'
-    //     },
-    // ]
+   
 
     type ItemProps = {
      
@@ -90,11 +57,11 @@ export default function Patients() {
                 <View>
                  
                     <View>
-                        <Text>Name : {props.firstName}</Text>
+                        <Text  style={{ color: 'black' }}>Name : {props.firstName}</Text>
                         <View>
-                            <Text>Date Of Birth: {props.dob}</Text>
-                            <Text>Sex: {props.gender}</Text>
-                            <Text>Type: {props.type}</Text>
+                            <Text  style={{ color: 'black' }}>Date Of Birth: {props.dob}</Text>
+                            <Text style={{ color: 'black' }}>Sex: {props.gender}</Text>
+                            <Text  style={{ color: 'black' }}>Type: {props.type}</Text>
                         </View>
                     </View>
                 </View>

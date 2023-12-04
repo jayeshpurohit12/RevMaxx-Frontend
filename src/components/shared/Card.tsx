@@ -21,12 +21,20 @@ export default function Card(props: CardTypes) {
 
 const style = StyleSheet.create({
     cardStyle: {
-        backgroundColor: COLORS.white,
+        backgroundColor: 'white',
+   
+        // height:1,
         padding: 20,
         elevation: 1,
         borderRadius: 16,
+        marginBottom:16,
         justifyContent: 'space-between',
-        gap: 16
+        // shadowColor:'red',
+        shadowColor: 'black',
+                shadowOffset: { width: 2, height: 2 },
+                shadowOpacity: 0.2,
+                shadowRadius: 4,
+        gap: 15
     },
     smallCard: {
         width: '48%'

@@ -5,7 +5,7 @@ import { COLORS, FONT } from '../themes/themes'
 import Card from '../components/shared/Card';
 import AudioRecorderPlayer from 'react-native-audio-recorder-player';
 import axios from 'axios';
-import { useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 type RouteParams = {
     patient_name: string; // Define the type of soapresponse
   };
@@ -13,7 +13,9 @@ type RouteParams = {
 
 const audioRecorderPlayer = new AudioRecorderPlayer();
 
-export default function Recording({ navigation }: { navigation: any }) {
+export default function Recording({ navigation =useNavigation() }: { navigation: any }) {
+    // const navigation = useNavigation();
+    // const route = useRoute();
     
     const [startRecord, setStartRecord] = useState(false);
     const [recording, setRecoding] = useState(false);
@@ -75,8 +77,8 @@ export default function Recording({ navigation }: { navigation: any }) {
         const formData = new FormData();
         formData.append('sound', {
           uri: result,
-          type: 'audio/mp4',
-          name: 'sound.mp4',
+          type: 'audio/m4a',
+          name: 'sound.m4a',
         });
     
         // fetch('http://192.168.0.106:4500/upload', {
@@ -98,7 +100,7 @@ export default function Recording({ navigation }: { navigation: any }) {
 
           const config = {
             method: 'post',
-            url: 'http://192.168.29.10:4500/upload',
+            url: 'http://revmaxx.us-east-1.elasticbeanstalk.com/upload',
             headers: {
                 "Content-Type": "multipart/form-data",
             },
@@ -135,7 +137,7 @@ export default function Recording({ navigation }: { navigation: any }) {
 
 
     return (
-        <View style={[globalStyles.container, { gap: 18, alignItems: 'center', justifyContent: 'space-between', height: '100%', paddingVertical: 60 }]}>
+        <View style={[globalStyles.container, { gap: 18, alignItems: 'center', justifyContent: 'flex-end', height: '100%', paddingVertical: 60 ,marginBottom:20}]}>
             {!recording ? (
                 <View style={{
                     width: '80%',
@@ -233,7 +235,7 @@ export default function Recording({ navigation }: { navigation: any }) {
                             flexDirection: 'row',
                             alignItems: 'center',
                             justifyContent: 'space-between',
-                            gap: 40
+                           
                         }}>
 
                             <TouchableOpacity onPress={() => { setStartRecord(false), setRecoding(false) }} style={{
@@ -270,7 +272,8 @@ export default function Recording({ navigation }: { navigation: any }) {
                                 style={{
                                 backgroundColor: COLORS.primary,
                                 padding: 12,
-                                borderRadius: 99
+                                borderRadius: 99,
+                                
                                 }}
                                 >
                                 <Image source={require('../assets/images/icons/scribe.png')} />

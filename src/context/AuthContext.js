@@ -6,10 +6,18 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [userId, setUserId] = useState(null);
   useEffect(() => {
-    const storedUserId = AsyncStorage.getItem('userId');
-    if (storedUserId) {
-      setUserId(storedUserId);
-    }
+    const retrievedUserId = async () =>{
+      try{
+        const storedUserId = await AsyncStorage.getItem('userId');
+        if (storedUserId) {
+          setUserId(storedUserId);
+        }
+      }catch(error){
+        console.error('Error retrieving userId from AsyncStorage:',error)
+      }
+    } 
+    retrievedUserId()
+  
   }, []);
 
   const signIn = (userId) => {

@@ -184,6 +184,7 @@ const styles = StyleSheet.create({
         fontFamily: FONT.medium,
         fontSize: 16,
         color: COLORS.greyText
+        
     },
     cardHeadText: {
         fontFamily: FONT.bold,

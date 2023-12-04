@@ -13,7 +13,7 @@ export default function Button(props: ButtonTypes) {
         <TouchableHighlight
             style={{
                 width: props.size === 'small' ? '48%' : '100%',
-                height: 49,
+                height: 60,
                 borderWidth: 1,
                 borderRadius: 8,
                 borderColor: COLORS.primary,

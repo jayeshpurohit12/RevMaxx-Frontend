@@ -45,46 +45,13 @@ export default function Appointments({ navigation }: { navigation: any }) {
             // Handle any errors here
             console.error('Error retrieving username:', error);
           });
-        axios.get(`http://192.168.29.10:4500/getSoapNotesByPid?provider_id=${pid}`).then(res=>{
+        axios.get(`http://revmaxx.us-east-1.elasticbeanstalk.com/getSoapNotesByPid?provider_id=${pid}`).then(res=>{
             console.log(res.data,"response in charts page")
         
                 setChartsData(res.data)
         }).catch(err=>console.log(err))
     },[pid])
-    // const charts = [
-    //     {
-    //         name: 'John Doe',
-    //         time: '12:00PM',
-    //         date: 'Mon, 24 Jul',
-    //         disease: 'Gastro Infection',
-    //         billed: true,
-    //         code: 'S06.0X0A SO1.81XA'
-    //     },
-    //     {
-    //         name: 'John Doe',
-    //         time: '12:00PM',
-    //         date: 'Mon, 24 Jul',
-    //         disease: 'Gastro Infection',
-    //         billed: true,
-    //         code: 'S06.0X0A SO1.81XA'
-    //     },
-    //     {
-    //         name: 'John Doe',
-    //         time: '12:00PM',
-    //         date: 'Mon, 24 Jul',
-    //         disease: 'Gastro Infection',
-    //         billed: true,
-    //         code: 'S06.0X0A SO1.81XA'
-    //     },
-    //     {
-    //         name: 'John Doe',
-    //         time: '12:00PM',
-    //         date: 'Mon, 24 Jul',
-    //         disease: 'Gastro Infection',
-    //         billed: true,
-    //         code: 'S06.0X0A SO1.81XA'
-    //     },
-    // ]
+   
     type ItemProps = {
      
        created_at:"string"
@@ -108,8 +75,8 @@ export default function Appointments({ navigation }: { navigation: any }) {
                 <View>
                  
                     <View>
-                        <Text>{docName}</Text>
-                        <Text>{props.created_at}</Text>
+                        <Text  style={{ color: 'black' }}>{docName}</Text>
+                        <Text  style={{ color: 'black' }}>{props.created_at}</Text>
                       
                     </View>
                 </View>
@@ -125,86 +92,17 @@ export default function Appointments({ navigation }: { navigation: any }) {
     
         return (
             // Your modal or dialog content here
-            <Text>{item.soapnote}</Text>
+            <Text  style={{ color: 'black' }}>{item.soapnote}</Text>
         );
     };
     return (
-        // <ScrollView>
-        //     <View style={[globalStyles.container, { gap: 18 }]}>
-        //         <View style={{
-        //             flexDirection: 'row',
-        //             justifyContent: 'space-between'
-        //         }}>
-        //             <Text style={styles.textBlue}>Thursday, July 21</Text>
-        //             <Text style={styles.textBlue}>Today</Text>
-        //         </View>
-        //         {Array.isArray(charts) && charts.map((item, index) => (
-        //             <Card
-        //                 key={index}
-        //                 type='large'
-        //                 // onPress={() => navigation.navigate('Recording')}
-        //                 content={
-        //                     <View style={styles.cardContent}>
-        //                         <View style={{ gap: 16 }}>
-        //                             <View style={{
-        //                                 flexDirection: 'row',
-        //                                 alignItems: 'center',
-        //                                 gap: 6
-        //                             }}>
-        //                                 <Image 
-        //                                     source={require('../assets/images/icons/patient.png')}
-        //                                 />
-        //                                 <Text style={styles.title}>{docName}</Text>
-        //                             </View>
-
-        //                             <View style={{
-        //                                 flexDirection: 'row',
-        //                                 alignItems: 'center',
-        //                                 gap: 6
-        //                             }}>
-        //                                 <Image
-        //                                     source={require('../assets/images/icons/calendarGrey.png')}
-        //                                 />
-        //                                 <Text style={styles.textGrey}>{item.created_at}</Text>
-        //                             </View>
-
-        //                             {/* <View style={{
-        //                                 flexDirection: 'row',
-        //                                 alignItems: 'center',
-        //                                 gap: 6
-        //                             }}>
-        //                                 <Image
-        //                                     source={require('../assets/images/icons/clockGrey.png')}
-        //                                 />
-        //                                 <Text style={styles.textGrey}>{item.time}</Text>
-        //                             </View> */}
-        //                         </View>
-        //                         {/* <View style={{
-        //                             justifyContent: 'space-between',
-        //                             alignItems: 'flex-end'
-        //                         }}>
-        //                             <Text style={styles.textGrey}>{item.billed ? 'Billed' : 'Not Billed'}</Text>
-        //                             <View style={{
-        //                                 alignItems: 'flex-end',
-        //                                 gap: 6
-        //                             }}>
-        //                                 <Text style={styles.textGrey}>{item.disease}</Text>
-        //                                 <Text style={styles.textCode}>{item.code}</Text>
-        //                             </View>
-        //                         </View> */}
-        //                     </View>
-        //                 }
-        //             />
-        //         ))}
-        //     </View>
-        // </ScrollView>
-
-
+       <View>
         <ScrollView>
     <View style={[globalStyles.container, { gap: 18 }]}>
         <View style={{
             flexDirection: 'row',
-            justifyContent: 'space-between'
+            justifyContent: 'space-between',
+           
         }}>
           
             <FlatList
@@ -218,6 +116,7 @@ export default function Appointments({ navigation }: { navigation: any }) {
         <SoapNotePopup isVisible={isPopupVisible} item={selectedItem} onClose={() => setIsPopupVisible(false)} />
     </View>
 </ScrollView>
+</View>
 
     )
 }

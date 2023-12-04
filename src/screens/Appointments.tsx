@@ -1,13 +1,13 @@
-import { View, Text, ScrollView, StyleSheet, Image, ActivityIndicator } from 'react-native'
-import React, { useEffect, useState } from 'react'
-import { globalStyles } from '../globalStyles'
-import { COLORS, FONT } from '../themes/themes'
-import Card from '../components/shared/Card'
-import axios from 'axios'
+import { View, Text, StyleSheet, Image, ActivityIndicator, FlatList } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { globalStyles } from '../globalStyles';
+import { COLORS, FONT } from '../themes/themes';
+import Card from '../components/shared/Card';
+import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Appointments({ navigation }: { navigation: any }) {
-    const [pid, setPid] = useState("")
+    const [pid, setPid] = useState("");
     const [appointments, setAppointments] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -25,7 +25,7 @@ export default function Appointments({ navigation }: { navigation: any }) {
                 console.error('Error retrieving provider_id:', error);
             });
 
-        axios.get(`http://192.168.29.10:4500/getAppointmentsByPid?provider_id=${pid}`)
+        axios.get(`http://revmaxx.us-east-1.elasticbeanstalk.com/getAppointmentsByPid?provider_id=${pid}`)
             .then((res) => {
                 console.log(res.data, "Appointment data");
                 setAppointments(res.data);
@@ -38,34 +38,39 @@ export default function Appointments({ navigation }: { navigation: any }) {
     }, [pid]);
 
     return (
-        <ScrollView>
-            {isLoading ? (
-                <ActivityIndicator size="large" color={COLORS.primary} />
-            ) : (
-                Array.isArray(appointments) && appointments.map((item, index) => (
-                    <Card
-                        key={index}
-                        type='large'
-                        onPress={() => navigation.navigate('Recording', { "patient_name": item.patient_name })}
-                        content={
-                            <View style={styles.cardContent}>
-                                <View style={{ gap: 8 }}>
-                                    <Text style={styles.title}>{item.patient_name}</Text>
-                                    <Text style={styles.type}>{item.type}</Text>
-                                </View>
-                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                                    <Image
-                                        source={require('../assets/images/icons/clock.png')}
-                                    />
-                                    <Text style={styles.date}>{item.appointmentTime}</Text>
-                                </View>
+        <FlatList
+            data={appointments}
+            keyExtractor={(item, index) => index.toString()}
+            renderItem={({ item, index }) => (
+                <Card
+                    key={index}
+                    type='large'
+                    onPress={() => navigation.navigate('Recording', { "patient_name": item.patient_name })}
+                    content={
+                        <View style={styles.cardContent}>
+                            <View style={{ gap: 8 }}>
+                                <Text style={styles.title}>{item.patient_name}</Text>
+                                <Text style={styles.type}>{item.type}</Text>
                             </View>
-                        }
-                    />
-                ))
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                                <Image
+                                    source={require('../assets/images/icons/clock.png')}
+                                />
+                                <Text style={styles.date}>{item.appointmentTime}</Text>
+                            </View>
+                        </View>
+                    }
+                />
             )}
-        </ScrollView>
-    )
+            ListEmptyComponent={() => (
+                isLoading ? (
+                    <ActivityIndicator size="large" color={COLORS.primary} />
+                ) : (
+                    <Text>No appointments available</Text>
+                )
+            )}
+        />
+    );
 }
 
 const styles = StyleSheet.create({
@@ -97,4 +102,4 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: COLORS.mediumGreyText
     },
-})
+});

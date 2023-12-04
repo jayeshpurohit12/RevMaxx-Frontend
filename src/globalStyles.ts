@@ -1,6 +1,9 @@
-import { StyleSheet } from "react-native";
-
+import { Platform, StyleSheet } from "react-native";
+import DeviceInfo from "react-native-device-info";
+let isiPad = DeviceInfo.getModel().includes("iPad");
+let isTablet = DeviceInfo.isTablet();
 export const globalStyles = StyleSheet.create({
+    
     containerAuth: {
         flex: 1,
         paddingHorizontal: 32,
@@ -11,6 +14,10 @@ export const globalStyles = StyleSheet.create({
 
     container: {
         paddingHorizontal: 24,
-        paddingVertical: 16,
+        paddingVertical:isiPad? 40:80,
+     
+
+ 
+      
     },
 })
