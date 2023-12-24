@@ -495,6 +495,7 @@
 				DEVELOPMENT_TEAM = 293P2H27K2;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = revmaxx/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.5;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -510,6 +511,7 @@
 				PROVISIONING_PROFILE_SPECIFIER = "RevMaxxAI-PROD";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Debug;
@@ -527,6 +529,7 @@
 				DEVELOPMENT_TEAM = 293P2H27K2;
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 293P2H27K2;
 				INFOPLIST_FILE = revmaxx/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.5;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -542,6 +545,7 @@
 				PROVISIONING_PROFILE_SPECIFIER = "RevMaxxAI-PROD";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "RevMaxxAI-PROD";
 				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Release;
@@ -621,6 +625,8 @@
 					"-ld_classic",
 					"-Wl",
 					"-ld_classic",
+					"-Wl",
+					"-ld_classic",
 				);
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
@@ -693,6 +699,8 @@
 				);
 				OTHER_LDFLAGS = (
 					"$(inherited)",
+					"-Wl",
+					"-ld_classic",
 					"-Wl",
 					"-ld_classic",
 					"-Wl",
