@@ -2,18 +2,23 @@ import {
   View,
   Text,
   Image,
-  TextInput,
-  ActivityIndicator,
   Alert,
   Linking,
+  StyleSheet,
+  ScrollView,
 } from 'react-native';
+import React from 'react';
 import Button from '../components/shared/Button';
 import {FONT, COLORS} from '../themes/themes';
 import {useState} from 'react';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {useNavigation} from '@react-navigation/native';
 import {useAuth} from '../context/AuthContext';
+import LinearGradient from 'react-native-linear-gradient';
+import brandLogo from '../assets/images/imgs/rmlogo.png';
+import brandName from '../assets/images/imgs/RevMaxx.png';
+import {scale, width} from '../constants/Layout';
+import InputBox from '../components/shared/InputBox';
 
 export default function LogIn({navigation}: {navigation: any}) {
   const [username, setUsername] = useState('');
@@ -55,140 +60,132 @@ export default function LogIn({navigation}: {navigation: any}) {
       setIsLoading(false); // Stop loading regardless of success or failure
     }
   };
+
+  const handleSignup = () => {
+    navigation.navigate('Signup');
+  };
+
   const handlePrivacyPolicyPress = () => {
     // Define the URL of your Privacy Policy page
-    const privacyPolicyUrl = 'https://www.flipkart.com/pages/privacypolicy'; // Replace with your actual Privacy Policy URL
+    const privacyPolicyUrl = 'https://revmaxx.co/privacy-policy';
 
     // Open the Privacy Policy page in the device's default browser
     Linking.openURL(privacyPolicyUrl);
   };
 
   return (
-    <>
-      <View
-        style={{
-          alignItems: 'center',
-          justifyContent: 'center',
-          //flex: 1,
-          gap: 12,
-        }}>
-        <Image source={require('../assets/images/imgs/rmlogo.png')} />
-        <Image source={require('../assets/images/imgs/RevMaxx.png')} />
-        <Text
-          style={{
-            fontFamily: FONT.medium,
-            fontSize: 16,
-            color: '#787878',
-          }}>
-          Digital Care. Superpowered.
-        </Text>
-      </View>
-      <View
-        style={{
-          alignItems: 'center',
-          gap: 24,
-          width: '100%',
-        }}>
-        <Text
-          style={{
-            //fontFamily: FONT.bold,
-            fontSize: 24,
-            color: COLORS.black,
-            fontWeight: '500',
-          }}>
-          Welcome To RevMaxx
-        </Text>
-        <View
-          style={{
-            width: '100%',
-            gap: 12,
-            height: '40%',
-            // backgroundColor: 'red',
+    <View style={styles.container}>
+      <ScrollView
+        style={{flex: 1, width: '100%'}}
+        showsVerticalScrollIndicator={false}>
+        <LinearGradient
+          colors={[COLORS.white, '#c7ddff38', COLORS.white]}
+          style={styles.logoContainer}>
+          <View style={styles.brandContainer}>
+            <Image
+              source={brandLogo}
+              style={styles.brandLogo}
+              resizeMode="contain"
+            />
+            <Image
+              source={brandName}
+              style={styles.brandName}
+              resizeMode="contain"
+            />
+            <Text style={styles.tagLine}>Our Personal EHR Assistant</Text>
+          </View>
+        </LinearGradient>
 
-            // borderWidth:10,
-            // borderColor: 'red',
-            // borderRadius:10,
-            //           alignSelf: 'center',
-            // flex: 0.5,
-            // justifyContent: 'center',
-          }}>
-          <View
-            style={{
-              height: COLORS.devicewidth * 0.13,
-              backgroundColor: COLORS.white,
-              borderWidth: COLORS.devicewidth * 0.003,
-              //borderColor: COLORS.borderColor,
-              borderRadius: COLORS.devicewidth * 0.03,
-              alignSelf: 'center',
-              gap: 10,
-              // flex: 0.5,
-              justifyContent: 'center',
-            }}>
-            <TextInput
-              textContentType={'emailAddress'}
-              placeholder={'Enter your email'}
-              placeholderTextColor="#000"
-              value={username}
-              onChangeText={text => setUsername(text)}
-              style={{
-                marginLeft: COLORS.devicewidth * 0.02,
-                width: COLORS.devicewidth * 0.8,
-                fontSize: COLORS.devicewidth * 0.04,
-                height: COLORS.deviceheight * 0.065,
-                color: 'black',
-              }}
-            />
-          </View>
-          <View
-            style={{
-              height: COLORS.devicewidth * 0.13,
-              backgroundColor: COLORS.white,
-              borderWidth: COLORS.devicewidth * 0.003,
-              //borderColor: COLORS.borderColor,
-              borderRadius: COLORS.devicewidth * 0.03,
-              alignSelf: 'center',
-              gap: 10,
-              justifyContent: 'center',
-            }}>
-            <TextInput
-              textContentType={'password'}
-              secureTextEntry={true}
-              placeholder={'Enter your password'}
-              placeholderTextColor="#000"
-              value={password}
-              onChangeText={text => setPassword(text)}
-              style={{
-                marginLeft: COLORS.devicewidth * 0.02,
-                width: COLORS.devicewidth * 0.8,
-                fontSize: COLORS.devicewidth * 0.04,
-                height: COLORS.deviceheight * 0.065,
-                color: 'black',
-              }}
-            />
-          </View>
-          <View style={{     gap: 12,}}></View>
-          <View style={{}}>
+        <View style={styles.loginContainer}>
+          <Text style={styles.welcomeTitle}>Welcome to RevMaxx</Text>
+          <InputBox
+            placeholder="Enter your email"
+            value={username}
+            onChangeText={setUsername}
+          />
+          <InputBox
+            placeholder="Enter your password"
+            value={password}
+            onChangeText={setPassword}
+            isPassword={true}
+          />
+
+          <Text style={styles.privacyTextContainer}>
+            By continuing you agree to revmax's{' '}
             <Text
-              style={{fontFamily: FONT.medium, fontSize: 10, color: '#787878'}}>
-              By continuing you agree to revmax's{' '}
-            
-           
-              <Text style={{color: COLORS.primary}} onPress={handlePrivacyPolicyPress}>
+              style={{color: COLORS.primary}}
+              onPress={handlePrivacyPolicyPress}>
               Terms & Conditions Privacy Policy
-        </Text>
             </Text>
+          </Text>
+
+          <View style={styles.bottomButtonContainer}>
+            <Button
+              name="Log In"
+              type="primary"
+              onPress={handleLogin}
+              isLoading={isLoading}
+            />
+            <View style={{marginTop: scale(20)}}>
+              <Button name="Sign up" type="secondary" onPress={handleSignup} />
+            </View>
           </View>
         </View>
-        <View style={{     gap: 20}}></View>
-        {/* Loading Indicator */}
-        {isLoading ? (
-          <ActivityIndicator size="large" color={COLORS.primary} />
-        ) : (
-          <View style={{    width: COLORS.devicewidth * 0.8, height:COLORS.deviceheight * 0.01,  gap: 20}}>
-          <Button name={`Log In`} type={'primary'} onPress={handleLogin} />
-          </View>
-        )}
-      </View>
-    </>
+      </ScrollView>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.white,
+  },
+  logoContainer: {
+    width: width,
+    height: scale(170),
+  },
+  brandContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  brandLogo: {
+    alignSelf: 'center',
+    width: scale(110),
+    height: scale(92),
+    marginBottom: scale(8),
+  },
+  brandName: {
+    alignSelf: 'center',
+  },
+  tagLine: {
+    color: COLORS.grey,
+    fontFamily: FONT.medium,
+    fontSize: scale(13),
+    marginTop: scale(10),
+    textAlign: 'center',
+  },
+  loginContainer: {
+    paddingHorizontal: scale(20),
+    flex: 1,
+  },
+  welcomeTitle: {
+    fontFamily: FONT.bold,
+    fontSize: scale(24),
+    textAlign: 'center',
+    marginBottom: scale(20),
+    marginTop: scale(20),
+  },
+  privacyTextContainer: {
+    fontSize: scale(12),
+    fontFamily: FONT.medium,
+    color: COLORS.lightGrey,
+    marginTop: scale(10),
+  },
+  bottomButtonContainer: {
+    alignSelf: 'center',
+    marginTop: scale(30),
+    width: '100%',
+  },
+});
