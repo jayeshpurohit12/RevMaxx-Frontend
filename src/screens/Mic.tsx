@@ -10,8 +10,11 @@ import Button from '../components/shared/Button';
 import {COLORS, FONT} from '../themes/themes';
 import {check, PERMISSIONS, request, RESULTS} from 'react-native-permissions';
 import {scale} from '../constants/Layout';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {useNavigation} from '@react-navigation/native';
 
-export default function PermissionMic({navigation}: {navigation: any}) {
+export default function PermissionMic() {
+  const navigation = useNavigation();
   // const reqMicPermission = async () => {
   //     try {
   //         const granted = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.RECORD_AUDIO)

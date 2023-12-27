@@ -5,6 +5,7 @@ import {COLORS} from './themes/themes';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import RootStackNavigator from './navigation/RootStackNavigator';
 import {AuthProvider} from './context/AuthContext';
+import {QueryClient, QueryClientProvider} from 'react-query';
 
 // My Themes
 const MyTheme = {
@@ -15,14 +16,18 @@ const MyTheme = {
   },
 };
 
+const queryClient = new QueryClient();
+
 export default function App() {
   return (
     <AuthProvider>
       <SafeAreaView style={{flex: 1}}>
-        <StatusBar backgroundColor={COLORS.white} barStyle="dark-content" />
-        <NavigationContainer theme={MyTheme}>
-          <RootStackNavigator />
-        </NavigationContainer>
+        <QueryClientProvider client={queryClient}>
+          <StatusBar backgroundColor={COLORS.white} barStyle="dark-content" />
+          <NavigationContainer theme={MyTheme}>
+            <RootStackNavigator />
+          </NavigationContainer>
+        </QueryClientProvider>
       </SafeAreaView>
     </AuthProvider>
   );

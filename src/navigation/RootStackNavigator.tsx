@@ -28,12 +28,20 @@ import {useAuth} from '../context/AuthContext';
 import Signup from '../screens/Signup';
 import {scale} from '../constants/Layout';
 import Header from '../components/interface/Header';
+import {useFetchRefreshToken, useLogout} from '../screens/hooks';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {PERMISSIONS, check, request} from 'react-native-permissions';
 
 export default function RootStackNavigator() {
   // Screen Stacks
   const AuthStack = createNativeStackNavigator();
   const MainStack = createNativeStackNavigator();
   const MainTab = createBottomTabNavigator();
+
+  const {refreshTokenMutate, isTokenError} = useFetchRefreshToken();
+  const {signOut} = useAuth();
+
+  const [isPermissionGranted, setIsPermissionGranted] = useState(false);
 
   // Main TabBar
   function MainTabBar() {
@@ -71,6 +79,19 @@ export default function RootStackNavigator() {
         isLogout: true,
       },
     ];
+
+    const {logoutMutate} = useLogout();
+
+    const handleLogout = async () => {
+      const accessToken = await AsyncStorage.getItem('access_token');
+      const refreshToken = await AsyncStorage.getItem('refresh_token');
+
+      logoutMutate(accessToken as string);
+      logoutMutate(refreshToken as string);
+
+      signOut();
+    };
+
     return (
       <MainTab.Navigator
         screenOptions={{
@@ -124,6 +145,7 @@ export default function RootStackNavigator() {
                   return (
                     <TouchableOpacity
                       activeOpacity={0.8}
+                      onPress={handleLogout}
                       style={{marginRight: scale(10)}}>
                       <Text
                         style={{
@@ -156,15 +178,37 @@ export default function RootStackNavigator() {
     return () => clearTimeout(splashTimer);
   }, []);
 
+  useEffect(() => {
+    const reqMicPermission = () => {
+      console.log();
+      check(PERMISSIONS.IOS.MICROPHONE).then(response => {
+        console.log(response);
+      });
+
+      request(PERMISSIONS.IOS.MICROPHONE).then(response => {
+        setIsPermissionGranted(response === 'granted');
+      });
+    };
+    reqMicPermission();
+  }, []);
+
+  useEffect(() => {
+    try {
+      refreshTokenMutate();
+    } catch (error) {
+      console.log(error, 'error in refresh token');
+    }
+  }, []);
+
   // Check for user login
   // const { user } = useAuth0();
   const {userId} = useAuth();
 
   return showSplash ? (
     <SplashScreen />
-  ) : !userId ? (
+  ) : !userId && isTokenError ? (
     <AuthStack.Navigator
-      initialRouteName="Permission Mic"
+      initialRouteName={isPermissionGranted ? 'Log In' : 'Permission Mic'}
       screenOptions={{
         headerShown: false,
         contentStyle: globalStyles.containerAuth,

@@ -9,7 +9,7 @@ const ChartCard = ({chatDetails}) => {
   return (
     <View style={styles.cardContainer}>
       <View style={styles.nameContainer}>
-        <Text style={styles.name}>Charts-unique124</Text>
+        <Text style={styles.name}>{chatDetails?.name}</Text>
 
         <Text style={styles.billed}>Coded</Text>
       </View>
@@ -20,7 +20,7 @@ const ChartCard = ({chatDetails}) => {
           size={scale(19)}
           color={COLORS.greyText}
         />
-        <Text style={styles.date}>Sun, Dec 2023</Text>
+        <Text style={styles.date}>{chatDetails?.visited_date}</Text>
       </View>
 
       <View style={[styles.nameContainer, {marginTop: scale(15)}]}>
@@ -30,12 +30,12 @@ const ChartCard = ({chatDetails}) => {
             size={scale(19)}
             color={COLORS.greyText}
           />
-          <Text style={styles.date}>12:00 PM</Text>
+          <Text style={styles.date}>{chatDetails?.visited_time}</Text>
         </View>
 
-        <Text style={[styles.billed, {fontSize: scale(12)}]}>
+        {/* <Text style={[styles.billed, {fontSize: scale(12)}]}>
           Acute Headache
-        </Text>
+        </Text> */}
       </View>
     </View>
   );

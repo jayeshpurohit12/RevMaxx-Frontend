@@ -4,11 +4,13 @@ import {
   StyleSheet,
   TouchableOpacity,
   Image,
-  Button,
   Alert,
   Animated,
   Easing,
+  Modal,
+  Linking,
 } from 'react-native';
+import RNFS from 'react-native-fs';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Feather from 'react-native-vector-icons/Feather';
 import React, {useState, useEffect, useRef} from 'react';
@@ -21,23 +23,29 @@ import {scale, verticalScale} from '../constants/Layout';
 import {Bar} from 'react-native-progress';
 import Voice from '@react-native-community/voice';
 import ScribeModal from '../components/interface/ScribeModal';
-
-type RouteParams = {
-  patient_name: string; // Define the type of soapresponse
-};
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {useFetchRefreshToken, useFetchSubscription} from './hooks';
+import {useMutation} from 'react-query';
+import {generateChart} from '../api';
+import {formatTime} from '../utils/helper';
+import Button from '../components/shared/Button';
 
 const audioRecorderPlayer = new AudioRecorderPlayer();
 
 export default function Recording() {
   const navigation = useNavigation();
-  const route = useRoute();
 
   const micBlinkAnimation = useRef(new Animated.Value(0)).current;
+
+  const {data: subscription} = useFetchSubscription();
+
+  console.log('subscription:', subscription);
 
   const [startRecord, setStartRecord] = useState(false);
   const [isPlaying, setIsPlaying] = useState(true);
   const [audioLevel, setAudioLevel] = useState(0);
-  const [recording, setRecoding] = useState(false);
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
+  const [elapsedTime, setElapsedTime] = useState(0);
   const [recordState, setRecordState] = useState({
     recordSecs: 0,
     recordTime: '00:00',
@@ -46,9 +54,20 @@ export default function Recording() {
     playTime: '00:00',
     duration: '00:00',
   });
-  const [soapresponse, setSoapResponse] = useState('');
-  const [patient_name, setPatient_name] = useState<string>('');
   const [isScribing, setIsScribing] = useState(false);
+
+  const {mutate: generateChartsMutate} = useMutation({
+    mutationFn: formData => generateChart(formData),
+    onSuccess: () => {
+      setIsScribing(false);
+      setStartRecord(false);
+      navigation.navigate('Charts');
+    },
+    onError: () => {
+      setIsScribing(false);
+      setStartRecord(false);
+    },
+  });
 
   const animatedStyle = {
     transform: [{scale: micBlinkAnimation}],
@@ -73,6 +92,21 @@ export default function Recording() {
       console.error(error);
     }
   };
+
+  //I am currently experiencing a fever and I need of medical attention. I have been feeling unwell with symptoms such as high fever.
+
+  useEffect(() => {
+    let interval;
+    if (startRecord && isPlaying) {
+      interval = setInterval(() => {
+        setElapsedTime(prevTime => prevTime + 1);
+      }, 1000);
+    } else {
+      clearInterval(interval);
+    }
+
+    return () => clearInterval(interval);
+  }, [isPlaying, startRecord]);
 
   useEffect(() => {
     // Start mic blinking animation when recording starts
@@ -130,17 +164,6 @@ export default function Recording() {
   }, []);
 
   useEffect(() => {
-    // Use this useEffect to handle navigation when soapresponse is available
-    const receivedpatientname = route.params as RouteParams;
-    console.log(receivedpatientname, 'patient_name');
-    setPatient_name(receivedpatientname?.patient_name);
-    console.log(patient_name, 'patient_name');
-    // if (soapresponse && patient_name) {
-    //     navigation.navigate('SoapNote', { soapresponse,patient_name })
-    // }
-  }, [soapresponse, patient_name]);
-
-  useEffect(() => {
     if (isScribing) {
       stopListening();
       setIsPlaying(false);
@@ -164,57 +187,16 @@ export default function Recording() {
     console.log('Path:', result);
     setIsScribing(true);
     const formData = new FormData();
-    formData.append('sound', {
+    formData.append('file', {
       uri: result,
       type: 'audio/m4a',
       name: 'sound.m4a',
     });
 
-    // fetch('http://192.168.0.106:4500/upload', {
-    //   method: 'POST',
-    //   body: formData,
-    //   headers: {
-    //     "Content-Type": "multipart/form-data"
-    //   },
-    // })
-    //   .then(response => response.json())
-    //   .then(data => {
-    //     console.log('Upload successful', data);
-    //   })
-    //   .catch(error => {
-    //     console.error('Upload Error', error);
-    //   });
-
-    const config = {
-      method: 'post',
-      url: 'http://revmaxx.us-east-1.elasticbeanstalk.com/upload',
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-      data: formData,
-    };
-
-    axios(config)
-      .then(response => {
-        setIsScribing(false);
-        setRecoding(false);
-        setStartRecord(false);
-        navigation.navigate('Charts');
-        console.log('Upload successful', response.data);
-        setSoapResponse(response.data);
-        // console.log("soapresponse",soapresponse)
-      })
-      .catch(error => {
-        setIsScribing(false);
-        setRecoding(false);
-        setStartRecord(false);
-        navigation.navigate('Charts');
-        console.error('Upload Error', error);
-      });
+    generateChartsMutate(formData);
   };
 
   const stopRecording = async () => {
-    setRecoding(true);
     const result = await audioRecorderPlayer.stopRecorder();
     audioRecorderPlayer.removeRecordBackListener();
     setRecordState({
@@ -222,6 +204,7 @@ export default function Recording() {
       recordSecs: 0,
     });
     console.log(result, 'stopRecording');
+    setElapsedTime(0);
     getAudioFile(result);
   };
 
@@ -240,6 +223,27 @@ export default function Recording() {
     console.log(msg);
   };
 
+  const handleCapture = () => {
+    if (subscription?.subscription_status === false) {
+      setShowSubscriptionModal(true);
+    } else {
+      startRecording();
+      onStartPlay();
+      setIsPlaying(true);
+      startListening();
+    }
+  };
+
+  const handleContact = async () => {
+    try {
+      const url = 'https://revmaxx.co/contact/';
+
+      await Linking.openURL(url);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <View
@@ -251,12 +255,7 @@ export default function Recording() {
             <TouchableOpacity
               style={styles.captureContainer}
               activeOpacity={0.9}
-              onPress={() => {
-                startRecording();
-                onStartPlay();
-                setIsPlaying(true);
-                startListening();
-              }}>
+              onPress={handleCapture}>
               <Feather name="mic" size={scale(23)} color={COLORS.grey} />
               <Text style={styles.captureTitle}>CAPTURE CONVERSATION</Text>
             </TouchableOpacity>
@@ -271,7 +270,9 @@ export default function Recording() {
                 alignItems: 'center',
                 gap: 4,
               }}>
-              <Text style={[styles.textRecord, {fontSize: 24}]}>00:01</Text>
+              <Text style={[styles.textRecord, {fontSize: 24}]}>
+                {formatTime(elapsedTime)}
+              </Text>
               <Text style={styles.textRecord}>Recording</Text>
             </View>
 
@@ -321,85 +322,21 @@ export default function Recording() {
           <ScribeModal isScribing={isScribing} />
         </View>
 
-        {/* Record Button */}
-        {/* {!recording ? (
-          <TouchableOpacity
-            onPress={stopRecording}
-            style={{
-              backgroundColor: COLORS.primaryLight,
-              padding: 12,
-              borderRadius: 999,
-            }}>
-            <View
-              style={{
-                backgroundColor: COLORS.red,
-                padding: 40,
-                borderRadius: 999,
-              }}>
-              <View
-                style={{
-                  backgroundColor: COLORS.white,
-                  padding: 12,
-                  borderRadius: 999,
-                }}></View>
-            </View>
-          </TouchableOpacity>
-        ) : (
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-            }}>
+        <View>
+          <Modal
+            visible={showSubscriptionModal}
+            animationType="fade"
+            transparent={true}>
             <TouchableOpacity
-              onPress={() => {
-                setStartRecord(false), setRecoding(false);
-              }}
-              style={{
-                backgroundColor: COLORS.primary,
-                padding: 12,
-                borderRadius: 99,
-              }}>
-              <Image source={require('../assets/images/icons/trash.png')} />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => navigation.navigate('SoapNote', {soapresponse})}
-              style={{
-                backgroundColor: COLORS.primaryLight,
-                padding: 12,
-                borderRadius: 999,
-              }}>
-              <View
-                style={{
-                  backgroundColor: COLORS.red,
-                  padding: 40,
-                  borderRadius: 999,
-                }}>
-                <View
-                  style={{
-                    backgroundColor: COLORS.white,
-                    padding: 12,
-                    borderRadius: 4,
-                  }}></View>
+              style={styles.outerContainer}
+              activeOpacity={1}
+              onPress={() => setShowSubscriptionModal(false)}>
+              <View style={styles.innerContainer}>
+                <Button name="Contact sales" onPress={handleContact} />
               </View>
             </TouchableOpacity>
-
-            {soapresponse && (
-              <TouchableOpacity
-                onPress={() =>
-                  navigation.navigate('SoapNote', {soapresponse, patient_name})
-                }
-                style={{
-                  backgroundColor: COLORS.primary,
-                  padding: 12,
-                  borderRadius: 99,
-                }}>
-                <Image source={require('../assets/images/icons/scribe.png')} />
-              </TouchableOpacity>
-            )}
-          </View>
-        )} */}
+          </Modal>
+        </View>
       </View>
     </View>
   );
@@ -480,5 +417,29 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: scale(50),
+  },
+  outerContainer: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  innerContainer: {
+    height: scale(100),
+    width: scale(240),
+    borderWidth: 1,
+    backgroundColor: COLORS.white,
+    borderColor: COLORS.white,
+    shadowColor: COLORS.black,
+    borderRadius: scale(16),
+    padding: scale(16),
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.22,
+    shadowRadius: 2.22,
   },
 });
