@@ -4,13 +4,21 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {scale} from '../../constants/Layout';
 import {COLORS, FONT} from '../../themes/themes';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import {useFetchProfile} from '../../screens/hooks';
+import moment from 'moment';
 
 const Header = () => {
   const insets = useSafeAreaInsets();
 
+  const {data: profileData} = useFetchProfile();
+
+  const currentDate = moment().format('ddd, MMM YYYY');
+
   return (
     <View style={[styles.container, {paddingTop: insets.top + scale(10)}]}>
-      <Text style={styles.name}>John Doe</Text>
+      <Text style={styles.name}>
+        {profileData?.data?.doctor_data?.full_name}
+      </Text>
 
       <View style={styles.flexContainer}>
         <Ionicons
@@ -18,7 +26,7 @@ const Header = () => {
           size={scale(17)}
           color={COLORS.greyText}
         />
-        <Text style={styles.date}>Sun, Dec 2023</Text>
+        <Text style={styles.date}>{currentDate}</Text>
       </View>
     </View>
   );

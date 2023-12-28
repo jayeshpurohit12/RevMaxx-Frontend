@@ -14,45 +14,46 @@ import {scale, width} from '../constants/Layout';
 import LinearGradient from 'react-native-linear-gradient';
 import Button from '../components/shared/Button';
 import InputBox from '../components/shared/InputBox';
-import {
-  GoogleSignin,
-  GoogleSigninButton,
-  statusCodes,
-} from '@react-native-google-signin/google-signin';
 import {useNavigation} from '@react-navigation/native';
+import {Formik} from 'formik';
+import * as Yup from 'yup';
+import {useAddSignup} from './hooks';
+
+interface IValues {
+  name: string;
+  email: string;
+  password: string;
+}
+
+const validationSchema = Yup.object().shape({
+  name: Yup.string().required('Name is required'),
+  email: Yup.string().email('Invalid email').required('Email is required'),
+  password: Yup.string()
+    .min(6, 'password must be at least 6 characters')
+    .required('Password is required'),
+});
 
 const Signup = () => {
   const navigation = useNavigation();
 
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
-  const [googleUserInfo, setGoogleUserInfo] = useState({});
+  const {signupMutate, isLoading} = useAddSignup();
 
-  console.log('googleUserInfo:', googleUserInfo);
-
-  const handleSignup = () => {};
+  const initialFormValues = {
+    name: '',
+    email: '',
+    password: '',
+  };
 
   const handleLogin = () => {
     navigation.navigate('Log In');
   };
 
-  const handleGoogleSignup = async () => {
-    try {
-      await GoogleSignin.hasPlayServices();
-      const userInfo = await GoogleSignin.signIn();
-      setGoogleUserInfo({userInfo});
-    } catch (error: any) {
-      if (error.code === statusCodes.SIGN_IN_CANCELLED) {
-        // user cancelled the login flow
-      } else if (error.code === statusCodes.IN_PROGRESS) {
-        // operation (e.g. sign in) is in progress already
-      } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-        // play services not available or outdated
-      } else {
-        // some other error happened
-      }
-    }
+  const handleSignup = (values: IValues) => {
+    signupMutate({
+      name: values?.name,
+      email: values?.email?.toLowerCase(),
+      password: values?.password,
+    });
   };
 
   return (
@@ -79,29 +80,42 @@ const Signup = () => {
         </LinearGradient>
         <View style={styles.loginContainer}>
           <Text style={styles.signupTitle}>Join Us Now</Text>
-          <InputBox
-            placeholder="Enter your Name"
-            value={name}
-            onChangeText={setName}
-          />
-          <InputBox
-            placeholder="Enter your email"
-            value={username}
-            onChangeText={setUsername}
-          />
-          <InputBox
-            placeholder="Enter your password"
-            value={password}
-            onChangeText={setPassword}
-            isPassword={true}
-          />
 
-          <Button
-            name="Sign up"
-            type="primary"
-            onPress={handleSignup}
-            isLoading={false}
-          />
+          <Formik
+            initialValues={initialFormValues}
+            validationSchema={validationSchema}
+            onSubmit={handleSignup}>
+            {({values, errors, handleChange, handleSubmit}) => (
+              <>
+                <InputBox
+                  placeholder="Enter your Name"
+                  value={values.name}
+                  onChangeText={handleChange('name')}
+                  error={errors.name}
+                />
+                <InputBox
+                  placeholder="Enter your email"
+                  value={values.email}
+                  onChangeText={handleChange('email')}
+                  error={errors.email}
+                />
+                <InputBox
+                  placeholder="Enter your password"
+                  value={values.password}
+                  onChangeText={handleChange('password')}
+                  error={errors.password}
+                  isPassword={true}
+                />
+
+                <Button
+                  name="Sign up"
+                  type="primary"
+                  onPress={handleSubmit}
+                  isLoading={isLoading}
+                />
+              </>
+            )}
+          </Formik>
 
           <View style={styles.alreadyAccountContainer}>
             <Text style={styles.alreadyAccount}>Already have an account? </Text>

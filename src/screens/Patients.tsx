@@ -17,50 +17,27 @@ import Avatar from '../assets/images/imgs/avatar.jpg';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import ChartCard from '../components/shared/ChartCard';
 import {useNavigation} from '@react-navigation/native';
+import {useFetchProfile, useGetLimitedCharts} from './hooks';
+import Foundation from 'react-native-vector-icons/Foundation';
 
 export default function Patients() {
   const navigation = useNavigation();
 
-  const [pid, setPid] = useState('');
-  const [patients, setPatients] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  useEffect(() => {
-    AsyncStorage.getItem('provider_id')
-      .then(provider_id => {
-        if (provider_id) {
-          setPid(provider_id);
-          // Use the retrieved username here
-          console.log('Retrieved pid:', pid);
-        } else {
-          // Handle the case where 'username' is not found in AsyncStorage
-          console.log('provider_id not found in AsyncStorage');
-        }
-      })
-      .catch(error => {
-        // Handle any errors here
-        console.error('Error retrieving provider_id:', error);
-      });
-    axios
-      .get(
-        `http://revmaxx.us-east-1.elasticbeanstalk.com/getPatientDocById?provider_id=${pid}`,
-      )
-      .then(res => {
-        console.log(res.data, 'Patient data');
-        setPatients(res.data);
-        setIsLoading(false);
-        console.log(patients, 'Patients');
-      })
-      .catch(err => {
-        console.log(err);
-        setIsLoading(false);
-      });
-  }, [pid]);
+  const {data, isLoading} = useFetchProfile();
+
+  const {isChartsLoading, limitedCharts} = useGetLimitedCharts();
+
+  console.log('limitedCharts:', limitedCharts);
 
   const renderCharts = ({item}) => {
     return (
       <TouchableOpacity
         activeOpacity={0.8}
-        onPress={() => navigation.navigate('SoapNote')}>
+        onPress={() =>
+          navigation.navigate('SoapNote', {
+            id: item?.id,
+          })
+        }>
         <ChartCard chatDetails={item} />
       </TouchableOpacity>
     );
@@ -72,22 +49,23 @@ export default function Patients() {
         <View style={styles.userDetailsContainer}>
           <Image source={Avatar} style={styles.iamge} />
           <View style={{marginLeft: scale(10)}}>
-            <Text style={styles.name}>John Doe</Text>
-            <Text style={styles.email}>johnDoe@gmail.com</Text>
+            <Text style={styles.name}>
+              {data?.data?.doctor_data?.full_name}
+            </Text>
+            <Text style={styles.email}>{data?.data?.doctor_data?.email}</Text>
           </View>
         </View>
         <View style={{alignSelf: 'center'}}>
           <View style={styles.premiumContainer}>
-            <AntDesign
-              name="checkcircle"
-              color={COLORS.success}
-              size={scale(10)}
-            />
-            <Text style={styles.premium}>Premium</Text>
+            <Foundation name="info" color={COLORS.warning} size={scale(14)} />
+            <Text style={styles.premium}>Free Trial</Text>
           </View>
 
           <Text style={styles.chartContainer}>
-            Charts: <Text style={styles.chartCount}>12</Text>
+            Charts:{' '}
+            <Text style={styles.chartCount}>
+              {data?.data?.doctor_data?.chart_count}
+            </Text>
           </Text>
         </View>
       </View>
@@ -102,17 +80,43 @@ export default function Patients() {
           </TouchableOpacity>
         </View>
         <View style={{paddingTop: scale(10), marginBottom: scale(30)}}>
-          <FlatList
-            data={['1', '2', '3']}
-            renderItem={renderCharts}
-            contentContainerStyle={{
-              marginTop: scale(10),
-              paddingBottom: scale(20),
-            }}
-            style={{paddingBottom: scale(20)}}
-            showsVerticalScrollIndicator={false}
-            keyExtractor={item => item.id}
-          />
+          {isChartsLoading ? (
+            <ActivityIndicator
+              size="small"
+              color={COLORS.primary}
+              style={{alignSelf: 'center', marginTop: scale(10)}}
+            />
+          ) : (
+            <FlatList
+              data={limitedCharts}
+              renderItem={renderCharts}
+              contentContainerStyle={{
+                marginTop: scale(10),
+                paddingBottom: scale(20),
+              }}
+              style={{paddingBottom: scale(20)}}
+              showsVerticalScrollIndicator={false}
+              keyExtractor={item => item.id}
+              ListEmptyComponent={() => (
+                <View
+                  style={{
+                    flex: 1,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    marginTop: scale(50),
+                  }}>
+                  <Text
+                    style={{
+                      fontFamily: FONT.regular,
+                      fontSize: scale(16),
+                      color: COLORS.mediumGreyText,
+                    }}>
+                    No SOAP Notes found
+                  </Text>
+                </View>
+              )}
+            />
+          )}
         </View>
       </View>
     </View>

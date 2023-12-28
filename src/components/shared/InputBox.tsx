@@ -1,4 +1,10 @@
-import {StyleSheet, TextInput, View, TouchableOpacity} from 'react-native';
+import {
+  StyleSheet,
+  TextInput,
+  View,
+  TouchableOpacity,
+  Text,
+} from 'react-native';
 import React, {useState} from 'react';
 import {scale} from '../../constants/Layout';
 import {COLORS, FONT} from '../../themes/themes';
@@ -8,6 +14,7 @@ interface InputBoxProps {
   placeholder: string;
   value: string;
   isPassword?: boolean;
+  error?: string;
   onChangeText: (text: string) => void;
 }
 
@@ -15,6 +22,7 @@ const InputBox = ({
   placeholder,
   value,
   isPassword,
+  error,
   onChangeText,
 }: InputBoxProps) => {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
@@ -29,6 +37,7 @@ const InputBox = ({
         onChangeText={onChangeText}
         secureTextEntry={isPassword && !isPasswordVisible}
       />
+      {error && <Text style={styles.error}>{error}</Text>}
       {isPassword && (
         <TouchableOpacity
           activeOpacity={0.8}
@@ -62,5 +71,12 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: scale(10),
     top: scale(15),
+  },
+  error: {
+    color: COLORS.red,
+    marginTop: scale(5),
+    fontSize: scale(10),
+    fontFamily: FONT.regular,
+    fontWeight: '500',
   },
 });

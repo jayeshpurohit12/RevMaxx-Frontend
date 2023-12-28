@@ -7,7 +7,7 @@ import {
   StyleSheet,
   ScrollView,
 } from 'react-native';
-import React from 'react';
+import React, {useEffect} from 'react';
 import Button from '../components/shared/Button';
 import {FONT, COLORS} from '../themes/themes';
 import {useState} from 'react';
@@ -19,46 +19,36 @@ import brandLogo from '../assets/images/imgs/rmlogo.png';
 import brandName from '../assets/images/imgs/RevMaxx.png';
 import {scale, width} from '../constants/Layout';
 import InputBox from '../components/shared/InputBox';
+import {useAddLogin} from './hooks';
+import {Formik} from 'formik';
+import * as Yup from 'yup';
+import Toast from 'react-native-toast-message';
+
+const validationSchema = Yup.object().shape({
+  email: Yup.string().required('Username is required').email('Invalid email'),
+  password: Yup.string().required('Password is required'),
+});
+
+interface Ivalues {
+  email: string;
+  password: string;
+}
 
 export default function LogIn({navigation}: {navigation: any}) {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false); // To track loading state
+  const initalValues = {
+    email: '',
+    password: '',
+  };
 
-  const {signIn} = useAuth();
+  const {loginMutate, isLoading} = useAddLogin();
 
-  const handleLogin = async () => {
-    try {
-      setIsLoading(true); // Start loading
+  const handleLogin = async (values: Ivalues) => {
+    const {email, password} = values;
 
-      const response = await axios.post(
-        'http://revmaxx.us-east-1.elasticbeanstalk.com/doctorLogin',
-        {
-          username: username,
-          password: password,
-        },
-      );
-
-      console.log('provider_id:', response.data[0].provider_id);
-      console.log('username:', response.data[0].username);
-      const data = response.data[0];
-
-      if (data !== null) {
-        signIn(data.provider_id);
-        AsyncStorage.setItem('provider_id', data.provider_id);
-        AsyncStorage.setItem('username', data.username);
-        navigation.navigate('Main');
-      } else {
-        // Handle cases where login is unsuccessful (e.g., invalid credentials)
-        Alert.alert('Login Failed', 'Invalid credentials. Please try again.');
-      }
-    } catch (error: any) {
-      // Handle API request error
-      console.error('Error:', error);
-      Alert.alert('Error', JSON.stringify(error));
-    } finally {
-      setIsLoading(false); // Stop loading regardless of success or failure
-    }
+    loginMutate({
+      email: email,
+      password: password,
+    });
   };
 
   const handleSignup = () => {
@@ -98,40 +88,58 @@ export default function LogIn({navigation}: {navigation: any}) {
 
         <View style={styles.loginContainer}>
           <Text style={styles.welcomeTitle}>Welcome to RevMaxx</Text>
-          <InputBox
-            placeholder="Enter your email"
-            value={username}
-            onChangeText={setUsername}
-          />
-          <InputBox
-            placeholder="Enter your password"
-            value={password}
-            onChangeText={setPassword}
-            isPassword={true}
-          />
 
-          <Text style={styles.privacyTextContainer}>
-            By continuing you agree to revmax's{' '}
-            <Text
-              style={{color: COLORS.primary}}
-              onPress={handlePrivacyPolicyPress}>
-              Terms & Conditions Privacy Policy
-            </Text>
-          </Text>
+          <Formik
+            initialValues={initalValues}
+            validationSchema={validationSchema}
+            onSubmit={handleLogin}>
+            {({values, errors, handleChange, handleSubmit}) => (
+              <>
+                <InputBox
+                  placeholder="Enter your email"
+                  value={values.email}
+                  onChangeText={handleChange('email')}
+                  error={errors.email}
+                />
+                <InputBox
+                  placeholder="Enter your password"
+                  value={values.password}
+                  onChangeText={handleChange('password')}
+                  isPassword={true}
+                  error={errors.password}
+                />
 
-          <View style={styles.bottomButtonContainer}>
-            <Button
-              name="Log In"
-              type="primary"
-              onPress={handleLogin}
-              isLoading={isLoading}
-            />
-            <View style={{marginTop: scale(20)}}>
-              <Button name="Sign up" type="secondary" onPress={handleSignup} />
-            </View>
-          </View>
+                <Text style={styles.privacyTextContainer}>
+                  By continuing you agree to revmax's{' '}
+                  <Text
+                    style={{color: COLORS.primary}}
+                    onPress={handlePrivacyPolicyPress}>
+                    Terms & Conditions Privacy Policy
+                  </Text>
+                </Text>
+
+                <View style={styles.bottomButtonContainer}>
+                  <Button
+                    name="Log In"
+                    type="primary"
+                    onPress={handleSubmit}
+                    isLoading={isLoading}
+                  />
+                  <View style={{marginTop: scale(20)}}>
+                    <Button
+                      name="Sign up"
+                      type="secondary"
+                      onPress={handleSignup}
+                    />
+                  </View>
+                </View>
+              </>
+            )}
+          </Formik>
         </View>
       </ScrollView>
+
+      <Toast />
     </View>
   );
 }

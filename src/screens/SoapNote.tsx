@@ -5,6 +5,7 @@ import {
   StyleSheet,
   TextInput,
   Image,
+  ActivityIndicator,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import {globalStyles} from '../globalStyles';
@@ -17,51 +18,44 @@ import Verify from '../assets/images/icons/verify.png';
 import Button from '../components/shared/Button';
 import Clipboard from '@react-native-community/clipboard';
 import Toast from 'react-native-toast-message';
-
-type RouteParams = {
-  soapresponse: string;
-  patient_name: string;
-};
-
-const text = `The patient is a 32-year-old female who presents with complaints of severe headache, dizziness, and blurred vision for the past three days. She reports no recent head trauma or fever but mentions feeling nauseous during episodes of headache.`;
+import {useEditSoapNote, useFetchSoapNote} from './hooks';
 
 export default function SoapNote() {
-  const [isEdit, setisEdit] = useState(false);
-  const [soapresponse, setSoapResponse] = useState<string>('');
-  const [patient_name, setPatient_name] = useState<string>('');
-  const [pid, setPid] = useState('');
-  const [sunjective, setSubjective] = useState<string>('');
-  const [objective, setObjective] = useState<string>('');
-  const [assessment, setAssessment] = useState<string>('');
-  const [plan, setPlan] = useState<string>('');
-
   const route = useRoute();
+  const {id} = route?.params;
+
+  const {data, isLoading} = useFetchSoapNote({id});
+
+  const [isEdit, setisEdit] = useState(false);
+  const [sunjective, setSubjective] = useState<any>('');
+  const [objective, setObjective] = useState<any>('');
+  const [assessment, setAssessment] = useState<any>('');
+  const [plan, setPlan] = useState<any>('');
+
+  const {editSoapNoteMutate, isEditLoading} = useEditSoapNote();
 
   useEffect(() => {
-    AsyncStorage.getItem('provider_id')
-      .then(provider_id => {
-        if (provider_id) {
-          setPid(provider_id);
-        } else {
-          console.log('provider_id not found in AsyncStorage');
-        }
-      })
-      .catch(error => {
-        console.error('Error retrieving provider_id:', error);
-      });
+    if (data?.data?.soap_data?.soap_content) {
+      setSubjective(Object.values(data?.data?.soap_data?.soap_content)[3]);
+      setObjective(Object.values(data?.data?.soap_data?.soap_content)[1]);
+      setAssessment(Object.values(data?.data?.soap_data?.soap_content)[0]);
+      setPlan(Object.values(data?.data?.soap_data?.soap_content)[2]);
+    }
+  }, [data?.data?.soap_data?.soap_content]);
 
-    const receivedsoapresponse = route?.params as RouteParams;
-    setSoapResponse(receivedsoapresponse?.soapresponse);
-    setPatient_name(receivedsoapresponse?.patient_name);
-
-    setAssessment(text);
-    setPlan(text);
-    setObjective(text);
-    setSubjective(text);
-  }, [route?.params, pid]);
+  console.log('data:', data?.data?.soap_data?.soap_content);
 
   const handleSave = () => {
     if (isEdit) {
+      editSoapNoteMutate({
+        id: id,
+        soap_content: {
+          subjective: sunjective,
+          objective: objective,
+          assessment: assessment,
+        },
+      });
+
       setisEdit(false);
     } else {
       setisEdit(true);
@@ -72,8 +66,7 @@ export default function SoapNote() {
     const fullSoapNote =
       `Subjective:\n${sunjective}\n\n` +
       `Objective:\n${objective}\n\n` +
-      `Assessment:\n${assessment}\n\n` +
-      `Plan:\n${plan}`;
+      `Assessment:\n${assessment}\n`;
 
     Clipboard.setString(fullSoapNote);
     Toast.show({
@@ -84,6 +77,15 @@ export default function SoapNote() {
       bottomOffset: scale(60),
     });
   };
+
+  if (isLoading) {
+    return (
+      <ActivityIndicator
+        style={{alignSelf: 'center', marginTop: scale(10)}}
+        size="large"
+      />
+    );
+  }
 
   return (
     <View
@@ -100,8 +102,10 @@ export default function SoapNote() {
             />
           </View>
 
-          <Text style={styles.name}>John Doe</Text>
-          <Text style={styles.date}>Date of Visit: July 23, 2023</Text>
+          <Text style={styles.name}>{data?.data?.soap_data?.name}</Text>
+          <Text style={styles.date}>
+            Date of Visit: {data?.data?.soap_data?.visited_date}
+          </Text>
 
           <Text style={styles.heading}>Subjective</Text>
           <TextInput
@@ -124,6 +128,8 @@ export default function SoapNote() {
           />
 
           <Text style={styles.heading}>Assessment</Text>
+
+          <Text style={styles.diagonsis}>Diagnosis:</Text>
           <TextInput
             style={styles.textInput}
             value={assessment}
@@ -149,6 +155,7 @@ export default function SoapNote() {
             name={!isEdit ? 'Edit' : 'Save'}
             size="small"
             onPress={handleSave}
+            isLoading={isEditLoading}
           />
           <Button name="Copy" size="small" onPress={handleCopy} />
         </View>
@@ -221,5 +228,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontFamily: FONT.medium,
     marginTop: scale(25),
+  },
+  diagonsis: {
+    marginTop: scale(10),
+    fontFamily: FONT.medium,
+    fontWeight: '500',
+    fontSize: scale(13),
   },
 });

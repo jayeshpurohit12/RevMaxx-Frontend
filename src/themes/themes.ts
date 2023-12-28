@@ -16,6 +16,7 @@ const COLORS = {
   success: '#4BB543',
   grey: '#787878',
   lightGrey: '#A7A7A7',
+  warning: '#f0ad4e',
   devicewidth: width,
   deviceheight: height,
   DeviceWidth: width,
